@@ -1,17 +1,29 @@
 #include <Arduino.h>
 #include "step_motor.h"
 
+/* Constructor.
+
+  this is a pointer to the current object, i.e. its address in the memory
+  to dereference the pointer and get the object you can do (*this)
+  if you only need to access a method/attribute, you can use ->
+  so 
+    this->i1
+  and
+    (*this).i1
+  are equivalent.
+*/
 StepMotor::StepMotor(int gearRatio, int i1, int i2, int i3, int i4) {
   this->gearRatio=gearRatio;
   this->i1=i1;
   this->i2=i2;
   this->i3=i3;
   this->i4=i4;
-  pinMode(i1,OUTPUT);
+  pinMode(i1,OUTPUT); //Tells arduino that you will use the pin as output
   pinMode(i2,OUTPUT);
   pinMode(i3,OUTPUT);
   pinMode(i4,OUTPUT);
-  deenergize();
+  //switch all coils off so we don't burn the motor
+  deenergize(); //same as this->deenergize()
   setSpeed(60); //1Hz
 };
 
@@ -57,7 +69,7 @@ void StepMotor::turnDegrees(long degs) {
 }
 
 void StepMotor::deenergize() {
-  digitalWrite(i1, LOW);  
+  digitalWrite(i1, LOW);  //i1 is same as this->i1
   digitalWrite(i2, LOW); 
   digitalWrite(i3, LOW); 
   digitalWrite(i4, LOW); 
