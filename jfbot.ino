@@ -1,3 +1,5 @@
+#include "step_motor.h" //Definitions from the header file
+
 /* This is how you do multi-line
    comments */
    
