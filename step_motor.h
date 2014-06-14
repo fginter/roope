@@ -22,9 +22,10 @@ class StepMotor { //kinda obvious what this does
     i1, i2, i3, i4: arduino pins (as integers) to which the four coils of the motor are connected
     */
     int gearRatio, i1, i2, i3, i4; //defines some integer attributes
+    int energizedIndicatorPin; //pin to which HIGH will be written if any coil is energized, and LOW otherwise. Set to -1 if you don't have such a pin.
     unsigned long stepDelay; //Delay in microseconds between steps, for the given speed (as set by setSpeed()). Calculated in the constructor.
     int phase; //0-7: phase in the cycle of the motor
-    StepMotor(int gearRatio, int i1, int i2, int i3, int i4); //Constructor. Its name is the name of the class.
+    StepMotor(int gearRatio, int i1, int i2, int i3, int i4, int energizedIndicatorPin); //Constructor. Its name is the name of the class.
     void setSpeed(int speed); // sets the speed in RPM with which the motor will rotate
     void turn(long steps); //Turn given number of steps. Positive forward. Negative backward. 
     void turnDegrees(long degrees); //Number of degrees to turn

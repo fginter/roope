@@ -19,16 +19,20 @@
     (*this).i1
   are equivalent.
 */
-StepMotor::StepMotor(int gearRatio, int i1, int i2, int i3, int i4) { //constructor has no return type (not even void)
+StepMotor::StepMotor(int gearRatio, int i1, int i2, int i3, int i4, int energizedIndicatorPin) { //constructor has no return type (not even void)
   this->gearRatio=gearRatio;
   this->i1=i1; //this-i1 is the instance attribute, while i1 is the local variable (argument of the function)
   this->i2=i2;
   this->i3=i3;
   this->i4=i4;
+  this->energizedIndicatorPin;
   pinMode(i1,OUTPUT); //Tells arduino that you will use the pin as output
   pinMode(i2,OUTPUT);
   pinMode(i3,OUTPUT);
   pinMode(i4,OUTPUT);
+  if (energizedIndicatorPin>=0) {
+    pinMode(energizedIndicatorPin,OUTPUT);
+  }
   //The output value of the pins is undefined now, so
   //switch all coils off so we don't burn the motor
   deenergize(); //same as this->deenergize()
@@ -89,6 +93,12 @@ void StepMotor::turnDegrees(long degs) {
 
 void StepMotor::deenergize() {
   //Drop all outputs to 0V
+  if (energizedIndicatorPin>=0) {
+    //Indicate that some coil is energized
+     digitalWrite(energizedIndicatorPin, HIGH);
+  }
+ 
+ 
   digitalWrite(i1, LOW);  //i1 is same as this->i1
   digitalWrite(i2, LOW); 
   digitalWrite(i3, LOW); 
@@ -132,6 +142,10 @@ void StepMotor::energize() {
   so one needs to put there the break;
   */
   
+    if (energizedIndicatorPin>=0) {
+      //Indicate that some coil is energized
+      digitalWrite(energizedIndicatorPin, HIGH);
+    }
   
    switch(phase){ 
    case 0: 
