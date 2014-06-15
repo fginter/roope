@@ -25,7 +25,7 @@ StepMotor::StepMotor(int gearRatio, int i1, int i2, int i3, int i4, int energize
   this->i2=i2;
   this->i3=i3;
   this->i4=i4;
-  this->energizedIndicatorPin;
+  this->energizedIndicatorPin=energizedIndicatorPin;
   pinMode(i1,OUTPUT); //Tells arduino that you will use the pin as output
   pinMode(i2,OUTPUT);
   pinMode(i3,OUTPUT);
@@ -37,7 +37,7 @@ StepMotor::StepMotor(int gearRatio, int i1, int i2, int i3, int i4, int energize
   //switch all coils off so we don't burn the motor
   deenergize(); //same as this->deenergize()
   //The lower this value, the less likely the motor is to skip a step, but the slower it is
-  setSpeed(60); //60RPM, i.e. 1Hz
+  setSpeed(10); //10RPM
 };
 
 void StepMotor::setSpeed(int speed) {
@@ -95,7 +95,7 @@ void StepMotor::deenergize() {
   //Drop all outputs to 0V
   if (energizedIndicatorPin>=0) {
     //Indicate that some coil is energized
-     digitalWrite(energizedIndicatorPin, HIGH);
+     digitalWrite(energizedIndicatorPin, LOW);
   }
  
  
