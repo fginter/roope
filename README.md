@@ -1,4 +1,4 @@
-Roppe
+Roope
 =====
 
 super-secret arduino project which noone is allowed to know about,
@@ -26,6 +26,6 @@ you have a permissions problem.
 
 ## Running
 
-Open `roppe` from file/sketchbook. Code happily. Then file/Upload and
+Open `roope` from file/sketchbook. Code happily. Then file/Upload and
 test. For the upload to succeed, you need to set the board under
 Tools/Board. In our case this is `Nano w/ atmega328`.
