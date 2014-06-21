@@ -1,3 +1,5 @@
+#include <Wire.h>
+#include <MMA7660.h> //Bad luck. This accelerometer doesn't have anywhere near the needed resolution!
 #include "step_motor.h" //Definitions from the header file
 
 /* This is how you do multi-line
@@ -18,6 +20,7 @@ Wheel diameter: 25mm --> perimeter: 78.5mm
       
 StepMotor left(513,7,8,9,10,11); //left motor, pins 9-12, indicator 13
 StepMotor right(513,3,4,5,6,12);    //right motor, pins 4-7, indicator 8
+MMA7660 accl; //accelerometer
 
 // Move both tires simultaneously
 void move_both(long degs) {
@@ -50,6 +53,7 @@ void setup() {
   left.setSpeed(10);
   right.setSpeed(10);
   Serial.begin(9600);
+  accl.init();
 }
 
 /* The microcontroller just keeps running this function
@@ -57,8 +61,17 @@ void setup() {
   everything should happen.
   */
 void loop() {
-  move_both(360);
+  float x,y,z;
+  delay(200); // There will be new values every 100ms
+  accl.getAcceleration(&x,&y,&z);
+  Serial.print("x: ");
+  Serial.print(x);
+  Serial.print(" y: ");
+  Serial.print(y);
+  Serial.print(" z: ");
+  Serial.println(z);
+  /*move_both(360);
   delay(1000);
   turn_left(90);
-  delay(1000);
+  delay(1000);*/
 } 
