@@ -10,11 +10,12 @@
    The main modification was splitting the code into a separate .h and .cpp files
 */
 
-double x_ref,y_ref;
+double x_ref,y_ref; // normalized reference x and y values of the accelerometer
 
+// calculate the unit vector (x,y) of the accelerometer and store it to (x_ref,y_ref)
 int MPU6050_set_angle_reference() {
   accel_t_gyro_union accel_t_gyro_reference;
-  delay(200);
+  delay(200); //let everything stabilize a bit
   MPU6050_read_raw_data(&accel_t_gyro_reference); //TODO: should we average this properly?
   float mag=sqrt(pow((float)accel_t_gyro_reference.value.x_accel,2.0)+pow((float)accel_t_gyro_reference.value.y_accel,2.0));
   x_ref=(float)accel_t_gyro_reference.value.x_accel/mag;
@@ -116,7 +117,11 @@ double MPU6050_get_angle() {
   mag=sqrt(pow((double)accel_t_gyro.value.x_accel,2.0)+pow((double)accel_t_gyro.value.y_accel,2.0));
   x=(double)accel_t_gyro.value.x_accel/mag;
   y=(double)accel_t_gyro.value.y_accel/mag;
-  fi=acos(x*x_ref+y*y_ref)*180.0/3.14159265;
+  fi=acos(x*x_ref+y*y_ref)*180.0/3.14159265; //dot product is cosine of the angle, acos gives radians, *180/PI gives degrees
+  //this comes from here:
+  //http://www.cs.cmu.edu/~quake/robust.html
+  //we're only interested in the sign of dir, to distinguish whether we're deviating left or right
+  //I bet there's a better way to do this...
   dir=-x*(y_ref-y)-(-y*(x_ref-x));
   if (dir<0) {
       return -fi;
