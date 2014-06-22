@@ -1,5 +1,8 @@
-#include <Wire.h>
-#include <MMA7660.h> //Bad luck. This accelerometer doesn't have anywhere near the needed resolution!
+//#define USE_MPU
+#ifdef USE_MPU
+  #include <Wire.h>
+  #include "mpu6050.h"
+#endif
 #include "step_motor.h" //Definitions from the header file
 
 /* This is how you do multi-line
@@ -20,7 +23,6 @@ Wheel diameter: 25mm --> perimeter: 78.5mm
       
 StepMotor left(513,7,8,9,10,11); //left motor, pins 9-12, indicator 13
 StepMotor right(513,3,4,5,6,12);    //right motor, pins 4-7, indicator 8
-MMA7660 accl; //accelerometer
 
 // Move both tires simultaneously
 void move_both(long degs) {
@@ -53,25 +55,36 @@ void setup() {
   left.setSpeed(10);
   right.setSpeed(10);
   Serial.begin(9600);
-  accl.init();
+  #ifdef USE_MPU
+    int err;
+    err=MPU6050_init();
+    #ifndef MPU6050_silent
+      Serial.print(F("*** MPU6050 init exit status: "));
+      Serial.println(err,DEC);
+    #endif
+    MPU6050_set_angle_reference(); //Set the reference angle of the MPU
+  #endif
 }
+
+/* MPU6050_get_angle() returns the angle relative to the position
+   in which the reset button was pressed. The return value is double in the +/-180 degree range
+   */
 
 /* The microcontroller just keeps running this function
   over and over again in an endless loop. This is where
   everything should happen.
   */
 void loop() {
-  float x,y,z;
-  delay(200); // There will be new values every 100ms
-  accl.getAcceleration(&x,&y,&z);
-  Serial.print("x: ");
-  Serial.print(x);
-  Serial.print(" y: ");
-  Serial.print(y);
-  Serial.print(" z: ");
-  Serial.println(z);
-  /*move_both(360);
+  #ifdef USE_MPU
+    while(1) {
+      Serial.println(MPU6050_get_angle());
+      delay(200);
+    }
+  #endif
+    
+  move_both(360);
   delay(1000);
   turn_left(90);
-  delay(1000);*/
+  delay(1000);
 } 
+
