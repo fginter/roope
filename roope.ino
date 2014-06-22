@@ -1,3 +1,14 @@
+/*
+  MPU-6050 connection
+  
+  MPU           ARDUINO
+  =========================
+  VDD,VIO  --   3V3 (+3.3V)
+  GND      --   GND
+  SCL      --   Analog 5
+  SDA      --   Analog 4
+*/
+
 //#define USE_MPU
 #ifdef USE_MPU
   #include <Wire.h>
