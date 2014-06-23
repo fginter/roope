@@ -9,11 +9,12 @@
   SDA      --   Analog 4
 */
 
-//#define USE_MPU
-#ifdef USE_MPU
-  #include <Wire.h>
-  #include "mpu6050.h"
-#endif
+//This would strictly be only needed in mpu6050.cpp, but due to Arduino's
+//extra processing, it also needs to be in the main .ino
+#include <EEPROM.h>
+
+#include <Wire.h>
+#include "mpu6050.h"
 #include "step_motor.h" //Definitions from the header file
 
 /* This is how you do multi-line
@@ -66,15 +67,14 @@ void setup() {
   left.setSpeed(10);
   right.setSpeed(10);
   Serial.begin(9600);
-  #ifdef USE_MPU
-    int err;
-    err=MPU6050_init();
-    #ifndef MPU6050_silent
-      Serial.print(F("*** MPU6050 init exit status: "));
-      Serial.println(err,DEC);
-    #endif
-    MPU6050_set_angle_reference(); //Set the reference angle of the MPU
+  int err;
+  err=MPU6050_init();
+  #ifndef MPU6050_silent
+    Serial.print(F("*** MPU6050 init exit status: "));
+    Serial.println(err,DEC);
   #endif
+  // MPU6050_set_angle_reference(); //only needed once
+  MPU6050_read_angle_reference_from_eeprom(); //Set the reference angle of the MPU from EEPROM
 }
 
 /* MPU6050_get_angle() returns the angle relative to the position
@@ -86,12 +86,12 @@ void setup() {
   everything should happen.
   */
 void loop() {
-  #ifdef USE_MPU
-    while(1) {
+  /*
+  while(1) {
       Serial.println(MPU6050_get_angle());
       delay(200);
-    }
-  #endif
+  }
+  */
     
   move_both(360);
   delay(1000);
