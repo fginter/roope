@@ -1,4 +1,5 @@
 #include <math.h>
+#include <EEPROM.h>
 #include "mpu6050.h"
 
 /* 
@@ -12,15 +13,63 @@
 
 double x_ref,y_ref; // normalized reference x and y values of the accelerometer
 
+
 // calculate the unit vector (x,y) of the accelerometer and store it to (x_ref,y_ref)
 int MPU6050_set_angle_reference() {
+  int err;
   accel_t_gyro_union accel_t_gyro_reference;
   delay(200); //let everything stabilize a bit
-  MPU6050_read_raw_data(&accel_t_gyro_reference); //TODO: should we average this properly?
-  float mag=sqrt(pow((float)accel_t_gyro_reference.value.x_accel,2.0)+pow((float)accel_t_gyro_reference.value.y_accel,2.0));
-  x_ref=(float)accel_t_gyro_reference.value.x_accel/mag;
-  y_ref=(float)accel_t_gyro_reference.value.y_accel/mag;
+  err=MPU6050_read_raw_data(&accel_t_gyro_reference); //TODO: should we average this properly, over few seconds of time?
+  double mag=sqrt(pow((double)accel_t_gyro_reference.value.x_accel,2.0)+pow((double)accel_t_gyro_reference.value.y_accel,2.0));
+  x_ref=(double)accel_t_gyro_reference.value.x_accel/mag;
+  y_ref=(double)accel_t_gyro_reference.value.y_accel/mag;
+  
+
+  //Write the angle reference to EEPROM, this needs to be done one byte at a time
+  int addr=0; //address into EEPROM
+  /* 
+      in the declaration below:
+
+      &x_ref is pointer to x_ref
+      (void *) makes it untyped pointer which we are free to cast any which way we like
+      (byte *) makes this a pointer to byte values, which behaves as
+      an array of bytes. This lets us access the bytes of the memory
+      behind the float values and read/write them any which way we
+      want
+
+      We need the (void *) mid-step to tell the compiler we really
+      know what we're doing, because normally you have no business
+      casting a float pointer to a byte pointer.  So the compiler
+      would refuse to do this. But the (void *) cast wipes any type
+      information from the pointer, and it just becomes a generic
+      memory as far as we are concerned.
+
+      --thanks to arduino.cc user haley for this trick
+  */
+
+  byte *b=(byte *)(void *) &x_ref;
+  for (int counter=0 ; counter < sizeof(x_ref) ; counter++) { //write as many bytes as there are in x_ref
+    EEPROM.write(addr++, *b++); //write the current byte to address, and increment both the address and the pointer to which byte
+  }
+  b=(byte *)(void *) &y_ref;
+  for (int counter=0 ; counter < sizeof(y_ref) ; counter++) { //repeats the exercise for y_ref
+    EEPROM.write(addr++, *b++);
+  }
+  return err;
 }
+
+int MPU6050_read_angle_reference_from_eeprom() {
+  int addr=0; //address into EEPROM
+  byte *b=(byte *)(void *) &x_ref; 
+  for (int counter=0 ; counter < sizeof(x_ref) ; counter++) { //read as many bytes as there are in x_ref
+    *b++=EEPROM.read(addr++); //read the current byte from address into the relevant byte, and increment both the address and the pointer to which byte
+  }
+  b=(byte *)(void *) &y_ref;
+  for (int counter=0 ; counter < sizeof(y_ref) ; counter++) {
+    *b++=EEPROM.read(addr++);
+  }
+}
+
 
 int MPU6050_init() {
     int error;
@@ -63,18 +112,8 @@ int MPU6050_init() {
     Serial.println(error,DEC);
     #endif
     // @fginter config
-    // mostly based on this document: http://invensense.com/mems/gyro/documents/RM-MPU-6000A.pdf
-    
-    error=MPU6050_write_reg (MPU6050_ACCEL_CONFIG, 0x0); //all 0, meaning no self-test and range +/-2g
-    if (error != 0) {
-      return error;
-    }
-    #ifndef MPU6050_silent
-    Serial.print(F("MPU6050 ACCEL CONFIG, error = "));
-    Serial.println(error,DEC);
-    #endif
-
-    error=MPU6050_write_reg (MPU6050_CONFIG, 0x6); //aggressive filtering according to the DLPF_CFG table on page 13
+    // based on this document: http://invensense.com/mems/gyro/documents/RM-MPU-6000A.pdf
+    error=MPU6050_write_reg (MPU6050_CONFIG, 0x6); //aggressive filtering on -- DLPF_CFG table on page 13
     if (error != 0) {
       return error;
     }

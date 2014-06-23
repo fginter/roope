@@ -734,5 +734,6 @@ int MPU6050_write_reg(int reg, uint8_t data);
 int MPU6050_init();
 double MPU6050_get_angle(); //Returns value in the +/-180 degrees range
 int MPU6050_read_raw_data(accel_t_gyro_union *accel_t_gyro);
-int MPU6050_set_angle_reference();
+int MPU6050_set_angle_reference(); // Measures the angle reference, sets it, and stores it to EEPROM
+int MPU6050_read_angle_reference_from_eeprom(); // retrieves the angle reference from EEPROM
 #endif
