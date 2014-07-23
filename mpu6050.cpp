@@ -132,19 +132,17 @@ int MPU6050_read_raw_data(accel_t_gyro_union *accel_t_gyro) {
   // With the default settings of the MPU-6050,
   // there is no filter enabled, and the values
   // are not very stable.
-  int err = MPU6050_read (MPU6050_ACCEL_XOUT_H, (uint8_t *) accel_t_gyro, sizeof(*accel_t_gyro));
-  Serial.print(F("Read accel, temp and gyro, error = "));
-  Serial.println(err,DEC);
+  int err = MPU6050_read (MPU6050_ACCEL_XOUT_H, (uint8_t *) accel_t_gyro, 6);//sizeof(*accel_t_gyro));
   uint8_t swap;
   #define SWAP(x,y) swap = x; x = y; y = swap
 
   SWAP (accel_t_gyro->reg.x_accel_h, accel_t_gyro->reg.x_accel_l);
   SWAP (accel_t_gyro->reg.y_accel_h, accel_t_gyro->reg.y_accel_l);
   SWAP (accel_t_gyro->reg.z_accel_h, accel_t_gyro->reg.z_accel_l);
-  SWAP (accel_t_gyro->reg.t_h, accel_t_gyro->reg.t_l);
+  /*SWAP (accel_t_gyro->reg.t_h, accel_t_gyro->reg.t_l);
   SWAP (accel_t_gyro->reg.x_gyro_h, accel_t_gyro->reg.x_gyro_l);
   SWAP (accel_t_gyro->reg.y_gyro_h, accel_t_gyro->reg.y_gyro_l);
-  SWAP (accel_t_gyro->reg.z_gyro_h, accel_t_gyro->reg.z_gyro_l);
+  SWAP (accel_t_gyro->reg.z_gyro_h, accel_t_gyro->reg.z_gyro_l);*/
   return err;
 }
 
@@ -153,7 +151,12 @@ double MPU6050_get_angle() {
   double x,y,mag,fi,dir;
   accel_t_gyro_union accel_t_gyro;
   err=MPU6050_read_raw_data(&accel_t_gyro);
-  mag=sqrt(pow((double)accel_t_gyro.value.x_accel,2.0)+pow((double)accel_t_gyro.value.y_accel,2.0));
+  mag=sqrt(((double)accel_t_gyro.value.x_accel)*accel_t_gyro.value.x_accel+((double)accel_t_gyro.value.y_accel)*accel_t_gyro.value.y_accel);
+//  Serial.println(accel_t_gyro.value.x_accel*accel_t_gyro.value.x_accel+accel_t_gyro.value.y_accel*accel_t_gyro.value.y_accel);
+/*  Serial.println(mag);
+  Serial.println(accel_t_gyro.value.x_accel);
+  Serial.println(accel_t_gyro.value.y_accel);
+  Serial.println();*/
   x=(double)accel_t_gyro.value.x_accel/mag;
   y=(double)accel_t_gyro.value.y_accel/mag;
   fi=acos(x*x_ref+y*y_ref)*180.0/3.14159265; //dot product is cosine of the angle, acos gives radians, *180/PI gives degrees
@@ -161,7 +164,7 @@ double MPU6050_get_angle() {
   //http://www.cs.cmu.edu/~quake/robust.html
   //we're only interested in the sign of dir, to distinguish whether we're deviating left or right
   //I bet there's a better way to do this...
-  dir=-x*(y_ref-y)-(-y*(x_ref-x));
+  dir=(y*(x_ref-x))-x*(y_ref-y);
   if (dir<0) {
       return -fi;
   }

@@ -14,6 +14,7 @@
 #include <EEPROM.h>
 
 #include <Wire.h>
+#include <Servo.h>
 #include "mpu6050.h"
 #include "step_motor.h" //Definitions from the header file
 
@@ -33,8 +34,8 @@ Wheel diameter: 25mm --> perimeter: 78.5mm
 */
    
       
-StepMotor left(513,7,8,9,10,11); //left motor, pins 9-12, indicator 13
-StepMotor right(513,3,4,5,6,12);    //right motor, pins 4-7, indicator 8
+StepMotor left(513,10,9,8,7,-1); //left motor, pins 9-12, indicator 13
+StepMotor right(513,6,5,4,3,-1);    //right motor, pins 4-7, indicator 8
 
 // Move both tires simultaneously
 void move_both(long degs) {
@@ -62,10 +63,13 @@ void turn_left(long degs) {
   right.deenergize();
 }
 
-
+Servo myservo;
 void setup() {
+  myservo.attach(11);
+  myservo.write(70);
   left.setSpeed(10);
   right.setSpeed(10);
+  
   Serial.begin(9600);
   int err;
   err=MPU6050_init();
@@ -73,8 +77,9 @@ void setup() {
     Serial.print(F("*** MPU6050 init exit status: "));
     Serial.println(err,DEC);
   #endif
-  // MPU6050_set_angle_reference(); //only needed once
+  //MPU6050_set_angle_reference(); //only needed once
   MPU6050_read_angle_reference_from_eeprom(); //Set the reference angle of the MPU from EEPROM
+  
 }
 
 /* MPU6050_get_angle() returns the angle relative to the position
@@ -86,16 +91,23 @@ void setup() {
   everything should happen.
   */
 void loop() {
-  /*
-  while(1) {
-      Serial.println(MPU6050_get_angle());
-      delay(200);
+  
+  /*long start=millis();
+  double f;
+  for (int i=0; i<1000; i++) {
+    f+=MPU6050_get_angle();
   }
-  */
+  Serial.println(millis()-start);
+  Serial.println(left.stepDelay);
+    */
     
-  move_both(360);
-  delay(1000);
+  double f;
+  f=MPU6050_get_angle();
+  Serial.println(f);
+
+  move_both(30);
+  /*delay(1000);
   turn_left(90);
-  delay(1000);
+  delay(1000);*/
 } 
 
