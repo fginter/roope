@@ -50,6 +50,60 @@ void move_both(long degs) {
   right.deenergize();
 }
 
+void move_angle(double angle) {
+  while (true) {
+    double accel_a;
+    accel_a=MPU6050_get_angle();
+    double diff=calculate_diff(angle,accel_a);
+    if (abs(diff)>1.0) {
+      // force to correct angle
+        correct(angle,diff);
+    }
+    move_both(5);
+    
+  }
+  
+}
+
+double calculate_diff(double target, double robot) {
+  double diff = target-robot; // both between 0-360
+  boolean reversed = false;
+  int dir = 1;
+  if (abs(diff)>180) { // okay, we don't want this...
+    if (diff>0) {
+      dir = -1;
+    }
+    diff=360-abs(diff);
+  }
+  diff=diff*dir;
+  return diff;
+}
+
+void correct(double target, int dir) {
+  Serial.println("**");
+  Serial.println(dir);
+  Serial.println("**");
+  while (true) {
+    if (dir>0) { // turn right
+      right.singleStep(true);
+    }
+    else { // turn left
+      left.singleStep(true);
+    }
+    // ready yet?
+    double new_a=MPU6050_get_angle(); // get new angle
+    double diff=calculate_diff(target,new_a);
+    if (abs(diff)<0.001) {
+     break;
+    }
+    else if ((dir<0 && diff>0) || (dir>0 && diff<0)) {
+      break;  
+    }
+    
+  }
+    
+}
+
 
 void turn_left(long degs) {
   long steps=degs/2*8*11;
@@ -105,7 +159,7 @@ void loop() {
   f=MPU6050_get_angle();
   Serial.println(f);
 
-  move_both(30);
+  move_angle(180.0);
   /*delay(1000);
   turn_left(90);
   delay(1000);*/
