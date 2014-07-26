@@ -166,7 +166,7 @@ double MPU6050_get_angle() {
   //I bet there's a better way to do this...
   dir=(y*(x_ref-x))-x*(y_ref-y);
   if (dir<0) {
-      return -fi;
+      return 360-fi;
   }
   else {
       return fi;

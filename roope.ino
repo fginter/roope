@@ -137,7 +137,7 @@ void setup() {
 }
 
 /* MPU6050_get_angle() returns the angle relative to the position
-   in which the reset button was pressed. The return value is double in the +/-180 degree range
+   in which the reset button was pressed. The return value is double in the 0-360 degree range
    */
 
 /* The microcontroller just keeps running this function
