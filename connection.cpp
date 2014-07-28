@@ -21,7 +21,7 @@ int Connection::fetch_command(char *message, int maxlen) {
       #ifndef debug
         Serial.println(message);
       #endif
-      Serial.write("k");
+      Serial.write(";");
       Serial.flush();
       return 0;
     }

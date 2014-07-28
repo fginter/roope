@@ -20,7 +20,7 @@
 #include "connection.h"
 #include "global.h"
 
-#define MPU6050_silent
+//#define MPU6050_silent
 
 /* This is how you do multi-line
    comments */
@@ -126,12 +126,23 @@ void turn_left(long degs) {
 Servo myservo;
 Connection c;
 void setup() {
+  /*
   myservo.attach(11);
   myservo.write(70);
   left.setSpeed(8);
   right.setSpeed(8);
-  
+  */
   Serial.begin(9600);
+  #ifndef debug
+    Serial.println("**Arduino connected**");
+  #endif
+  
+  // send a message that the port is ready to receive commands
+  // for some reason the first message is lost without doing it this way
+  Serial.write(";"); 
+  Serial.flush();
+  
+  /*
   int err;
   err=MPU6050_init();
   #if !defined(MPU6050_silent) && !defined(debug)
@@ -140,7 +151,7 @@ void setup() {
   #endif
   //MPU6050_set_angle_reference(); //only needed once
   MPU6050_read_angle_reference_from_eeprom(); //Set the reference angle of the MPU from EEPROM
-  
+  */
 }
 
 /* MPU6050_get_angle() returns the angle relative to the position
@@ -152,51 +163,38 @@ void setup() {
   everything should happen.
   */
 void loop() {
+  
+  long start=micros();
+    
+  char msg[10];
+  int err=c.fetch_command(msg,9);
   #ifndef debug
-    Serial.println("**Arduino connected**");
+    if (err==0) {
+      Serial.print("Message:");
+      Serial.print(msg);
+      Serial.println("");
+    }
   #endif
-  /*while (true) {
-    char msg[60];
-    int err=c.fetch_command(msg,59);
-    if (err==0) {
-      Serial.println("new command received:");
-      Serial.println(msg);
-    }
-    //Serial.println(err);
-  }*/
-  while (true) {
-    long start=micros();
     
-    char msg[10];
-    int err=c.fetch_command(msg,9);
-    #ifndef debug
-    if (err==0) {
-      //Serial.println(msg);
-    }
-    #endif
-    
-    myservo.write(80);
-    double f;
-    f=MPU6050_get_angle();
-    #ifndef debug
-      Serial.println(f);
-      Serial.println("");
-      Serial.println(micros()-start);
-      Serial.println("");
-      Serial.println(left.stepDelay);
-      Serial.println("--------");
-    #endif
-    //delay(1000);
-  }
+  /*  
+  myservo.write(80);
+  double f;
+  f=MPU6050_get_angle();
+  #ifndef debug
+    Serial.print("angle:");
+    Serial.print(f);
+    Serial.println("");
+    Serial.print("time used:");
+    Serial.print(micros()-start);
+    Serial.println("");
+    Serial.print("time avail:");
+    Serial.print(left.stepDelay);
+    Serial.println("--------");
+  #endif
+  */
+  
+  delay(1000);
   
     
-  //double f;
-  //f=MPU6050_get_angle();
-  //Serial.println(f);
-
-  //move_angle(180.0);
-  /*delay(1000);
-  turn_left(90);
-  delay(1000);*/
 } 
 
