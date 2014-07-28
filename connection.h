@@ -3,9 +3,10 @@
 
 
 class Connection {
-  
-  void setup_connection();
-  char* fetch_command(); 
+  public:
+    Connection();
+    void setup_connection();
+    int fetch_command(char*,int); 
   
 };
 

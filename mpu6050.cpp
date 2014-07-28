@@ -2,6 +2,8 @@
 #include <EEPROM.h>
 #include "mpu6050.h"
 
+#define MPU6050_silent
+
 /* 
    This code is extracted and only minimally modified by @fginter from
    the code by arduino.cc user Krodal published here:
