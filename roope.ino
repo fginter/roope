@@ -37,6 +37,10 @@ StepMotor right(513,3,4,5,6,-1);
 Servo myservo;
 Servo penlift_servo; //115 degrees pen up, 130 degrees, pen down
 Connection c;
+int S_LOW = 60; // lowest possible servo angle
+int S_HIGH = 80; // highest possible servo angle
+int S_MIDDLE = S_LOW+(S_HIGH-S_LOW)/2;
+int WHITE = 0; // 
 
 void setup() {
   myservo.attach(11);
@@ -79,12 +83,18 @@ void follow_command(comm_t cmm) {
     penlift_servo.write(115); // pen up
   }
   else {
+    myservo.write(S_MIDDLE); // make it to be middle
     penlift_servo.write(130); // pen down
-    // my
-  } 
+  }
   while (i<=cmm.steps) {
     //unsigned long start = micros(); // start time
     
+    if (cmm.pen>WHITE && i%2==0) {
+      myservo.write(S_LOW);
+    }
+    else if (cmm.pen>WHITE) {
+      myservo.write(S_HIGH);
+    }
     double accel_a;
     accel_a=MPU6050_get_angle();
     double diff=calculate_diff((double)cmm.angle,accel_a);
