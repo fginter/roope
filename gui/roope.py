@@ -23,7 +23,7 @@ class Roope(QMainWindow):
         self.scene=QGraphicsScene()
         self.gui.g_view.setScene(self.scene)
         self.port=None
-        self.connect_to_port("/dev/ttyUSB0")
+        self.connect_to_port("/dev/ttyUSB1")
 
     # def refreshSerialPorts(self):
     #     self.gui.portList.clear()
@@ -39,7 +39,7 @@ class Roope(QMainWindow):
             self.port=None
         if port:
             self.port=serial.Serial(port,9600,bytesize=serial.EIGHTBITS,parity=serial.PARITY_NONE,stopbits=serial.STOPBITS_ONE)
-            time.sleep(2)
+            time.sleep(3)
             print >> sys.stderr, "Connected to", port
 
     def load(self,fig_file,max_x=2000,max_y=300):
@@ -74,6 +74,7 @@ class Roope(QMainWindow):
             b=self.port.read()
             if b!=";":
                 sys.stderr.write(b)
+                sys.stderr.flush()
             else:
                 break
         print >> sys.stderr
@@ -81,6 +82,7 @@ class Roope(QMainWindow):
         sys.stderr.flush()
 
     def move_pixel(self,steps,angle,pen,backwards):
+        print "S=", steps, "A=", angle, "P=", pen, "B=", backwards
         command=struct.pack("<cHHBBc","D",steps,angle,pen,backwards,";") #c character, H unsigned 2B int, B unsigned byte  "<" little endian
         self.comm(command)
 
@@ -96,7 +98,7 @@ class Roope(QMainWindow):
         self.side_step(direction)
 
     def side_step(self,direction=DOWN,steps=10,angle=20):
-        angleRAD=mat.radians(90-angle)
+        angleRAD=math.radians(90-angle)
         traverse=int(steps/math.cos(angleRAD)) #How many steps to travel under angle?
         back=int(steps*math.tan(angleRAD))
         if direction==DOWN:
@@ -109,11 +111,15 @@ class Roope(QMainWindow):
 def main(app):
     roope=Roope()
     roope.show()
-    roope.load("20140617_010845.jpg")
-    roope.move_pixel(200,0,0,0)
+    #roope.load("20140617_010845.jpg")
+    roope.move_pixel(100,0,1,0)
+    roope.side_step(UP,100)
+    roope.move_pixel(100,0,1,1)
+    for i in range(10):
+        roope.move_pixel(2000,0,i%2,0)
     #roope.follow_line()
     #roope.load("photo.jpg")
-    return app.exec_()
+    #return app.exec_()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

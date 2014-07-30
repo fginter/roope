@@ -11,18 +11,17 @@ void Connection::setup_connection() {
   // TODO
 }
 
-int Connection::fetch_command(char *message, int maxlen) {
+int Connection::fetch_command(char *message) {
   //Serial.println("fetching new command");
   int len=0;
   if (Serial.available()>0) {
-    len=Serial.readBytesUntil(';',message,maxlen);
+    len=Serial.readBytes(message,sizeof(comm_t));
     if (len>0) {
-      message[len]='\0';
-      #ifndef debug
-        Serial.println(message);
-      #endif
-      Serial.write(";");
-      Serial.flush();
+      //#ifndef debug
+      //Serial.println(message);
+      //#endif
+      //Serial.write(";");
+      //Serial.flush();
       return 0;
     }
   }

@@ -31,42 +31,77 @@
    void is the return type of the function, or in this case it means that the function doesn't return a value
    */
    
-/* Specs of our little prototype device:
-Axel: 94mm --> perimeter: 590.6mm
-Wheel diameter: 25mm --> perimeter: 78.5mm
-...1 degree is about 8*11 steps...
-*/
-   
       
 StepMotor left(513,7,8,9,10,-1); //left motor, pins 7-10, no indicator LED
-StepMotor right(513,3,4,5,6,-1);    
+StepMotor right(513,3,4,5,6,-1);  
+Servo myservo;
+Servo penlift_servo; //115 degrees pen up, 130 degrees, pen down
+Connection c;
 
-// Move both tires simultaneously
-void move_both(long degs) {
-  long steps=(left.gearRatio*degs)/45L;
-  while (steps>0) {
-    left.singleStep(true);
-    right.singleStep(true);
-    steps--;
-    delayMicroseconds(left.stepDelay); // without this magnet is turning too fast?
-  }
-  left.deenergize(); // blinks led
-  right.deenergize();
+void setup() {
+  myservo.attach(11);
+  penlift_servo.attach(12);
+  penlift_servo.write(115);
+  myservo.write(70);
+  left.setSpeed(8);
+  right.setSpeed(8);
+  
+  Serial.begin(9600);
+  #ifndef debug
+    Serial.println("**Arduino connected**");
+  #endif
+  
+  int err;
+  err=MPU6050_init();
+  #if !defined(MPU6050_silent) && !defined(debug)
+    Serial.print(F("*** MPU6050 init exit status: "));
+    Serial.println(err,DEC);
+  #endif
+  //MPU6050_set_angle_reference(); //only needed once
+  MPU6050_read_angle_reference_from_eeprom(); //Set the reference angle of the MPU from EEPROM
+  
 }
 
-void move_angle(double angle) {
-  while (true) {
+/* MPU6050_get_angle() returns the angle relative to the position
+   in which the reset button was pressed. The return value is double in the 0-360 degree range
+   */
+
+
+void follow_command(comm_t cmm) { 
+  Serial.println(cmm.steps);
+  
+  unsigned int i = 0;
+  boolean f = true;
+  if (cmm.backwards==1) {
+    f=false;
+  }
+  if (cmm.pen==0) {
+    penlift_servo.write(115); // pen up
+  }
+  else {
+    penlift_servo.write(130); // pen down
+    // my
+  } 
+  while (i<=cmm.steps) {
+    //unsigned long start = micros(); // start time
+    
     double accel_a;
     accel_a=MPU6050_get_angle();
-    double diff=calculate_diff(angle,accel_a);
+    double diff=calculate_diff((double)cmm.angle,accel_a);
     if (abs(diff)>1.0) {
       // force to correct angle
-        correct(angle,diff);
+      correct((double)cmm.angle,diff,true);
     }
-    move_both(5);
+    left.singleStep(f);
+    right.singleStep(f);
     
+    //long left = (long)(left.stepDelay-(micros()-start));
+    //if (left>0) {
+    delayMicroseconds(left.stepDelay);
+    //}
+    i++;
   }
-  
+  Serial.println(";");
 }
 
 double calculate_diff(double target, double robot) {
@@ -83,24 +118,30 @@ double calculate_diff(double target, double robot) {
   return diff;
 }
 
-void correct(double target, int dir) {
+void correct(double target, int dir, boolean forward) {
   #ifndef debug
     Serial.println("**");
     Serial.println(dir);
     Serial.println("**");
   #endif
   while (true) {
-    if (dir>0) { // turn right
+    if (dir>0 && forward==true) { // turn right
+      left.singleStep(true);
+    }
+    else if (dir<0 && forward==true){ // turn left
       right.singleStep(true);
     }
-    else { // turn left
-      left.singleStep(true);
+    else if (dir>0 && forward==false) {
+      left.singleStep(false);
+    }
+    else {
+      right.singleStep(false);
     }
     // ready yet?
     double new_a=MPU6050_get_angle(); // get new angle
     double diff=calculate_diff(target,new_a);
     if (abs(diff)<0.001) {
-     break;
+      break;
     }
     else if ((dir<0 && diff>0) || (dir>0 && diff<0)) {
       break;  
@@ -111,73 +152,44 @@ void correct(double target, int dir) {
 }
 
 
-void turn_left(long degs) {
-  long steps=degs/2*8*11;
-  while (steps>0) {
-    left.singleStep(false);
-    right.singleStep(true);
-    steps--;
-    delayMicroseconds(left.stepDelay);
+void move_horizontal(double orig_angle, boolean forward) {
+  double target;
+  if (forward==true) {
+    target = 340.0;
   }
-  left.deenergize();
-  right.deenergize();
+  else {
+    target = 20;
+  }
+  double robot = MPU6050_get_angle();
+  double diff = calculate_diff(target,robot);
+  correct(target,diff,forward);
+  
+  robot = MPU6050_get_angle();
+  diff = calculate_diff(orig_angle,robot);
+  correct(orig_angle,diff,forward);
 }
 
-Servo myservo;
-Servo penlift_servo; //115 degrees pen up, 130 degrees, pen down
-Connection c;
-void setup() {
-  myservo.attach(11);
-  penlift_servo.attach(12);
-  penlift_servo.write(130);
-  myservo.write(70);
-  left.setSpeed(8);
-  right.setSpeed(8);
-  
-  Serial.begin(9600);
-  #ifndef debug
-    Serial.println("**Arduino connected**");
-  #endif
-  
-  // send a message that the port is ready to receive commands
-  // for some reason the first message is lost without doing it this way
-  Serial.write(";"); 
-  Serial.flush();
-  
-  /*
-  int err;
-  err=MPU6050_init();
-  #if !defined(MPU6050_silent) && !defined(debug)
-    Serial.print(F("*** MPU6050 init exit status: "));
-    Serial.println(err,DEC);
-  #endif
-  //MPU6050_set_angle_reference(); //only needed once
-  MPU6050_read_angle_reference_from_eeprom(); //Set the reference angle of the MPU from EEPROM
-  */
-}
 
-/* MPU6050_get_angle() returns the angle relative to the position
-   in which the reset button was pressed. The return value is double in the 0-360 degree range
-   */
 
 /* The microcontroller just keeps running this function
   over and over again in an endless loop. This is where
   everything should happen.
   */
+
 void loop() {
   
-  long start=micros();
+  
+  //long start=micros();
     
-  char msg[10];
-  int err=c.fetch_command(msg,9);
-  #ifndef debug
-    if (err==0) {
-      Serial.print("Message:");
-      Serial.print(msg);
-      Serial.println("");
-    }
-  #endif
+  comm_t msg;
+  
+  int err=c.fetch_command((char*)(void*)&msg);
+  //Serial.println(err);
+  if (err==0) {
+    follow_command(msg);
+  }
     
+  
   /*  
   myservo.write(80);
   double f;
@@ -195,7 +207,7 @@ void loop() {
   #endif
   */
   
-  delay(1000);
+  //delay(1000);
   
     
 } 

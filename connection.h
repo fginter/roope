@@ -6,7 +6,7 @@ class Connection {
   public:
     Connection();
     void setup_connection();
-    int fetch_command(char*,int); 
+    int fetch_command(char*); 
   
 };
 
