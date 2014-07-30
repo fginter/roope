@@ -3,6 +3,8 @@ from PyQt4.QtCore import Qt
 from ui_roope import *
 import sys
 import struct
+import serial.tools.list_ports
+import serial
 
 DOWN=180
 UP=0
@@ -18,6 +20,14 @@ class Roope(QMainWindow):
         self.gui.setupUi(self)
         self.scene=QGraphicsScene()
         self.gui.g_view.setScene(self.scene)
+        self.refreshSerialPorts()
+
+    def refreshSerialPorts(self):
+        self.gui.portList.clear()
+        for path,comment,HWID in serial.tools.list_ports.comports():
+            if not "USB" in path:
+                continue
+            self.gui.portList.addItem(path)
 
     def load(self,fig_file,max_x=2000,max_y=300):
         img=QImage(fig_file)
@@ -54,7 +64,7 @@ class Roope(QMainWindow):
         print repr(s)
 
     def move_pixel(self,steps,angle,pen,backwards):
-        command=struct.pack("<cHHBBc","D",steps,angle,pen,backwards,";")
+        command=struct.pack("<cHHBBc","D",steps,angle,pen,backwards,";") #c character, H unsigned 2B int, B unsigned byte  "<" little endian
         self.comm(command)
 
     def follow_line(self,x=0,from_y=0,direction=DOWN,steps=50):
