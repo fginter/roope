@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_roope.ui'
 #
-# Created: Wed Jul 30 10:45:24 2014
+# Created: Wed Jul 30 11:39:44 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!

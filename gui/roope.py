@@ -1,10 +1,12 @@
 from PyQt4.QtGui import *
-from PyQt4.QtCore import Qt
+from PyQt4.QtCore import Qt, pyqtSlot
 from ui_roope import *
 import sys
 import struct
 import serial.tools.list_ports
 import serial
+import math
+import time
 
 DOWN=180
 UP=0
@@ -20,14 +22,25 @@ class Roope(QMainWindow):
         self.gui.setupUi(self)
         self.scene=QGraphicsScene()
         self.gui.g_view.setScene(self.scene)
-        self.refreshSerialPorts()
+        self.port=None
+        self.connect_to_port("/dev/ttyUSB0")
 
-    def refreshSerialPorts(self):
-        self.gui.portList.clear()
-        for path,comment,HWID in serial.tools.list_ports.comports():
-            if not "USB" in path:
-                continue
-            self.gui.portList.addItem(path)
+    # def refreshSerialPorts(self):
+    #     self.gui.portList.clear()
+    #     for path,comment,HWID in serial.tools.list_ports.comports():
+    #         if not "USB" in path:
+    #             continue
+    #         self.gui.portList.addItem(path)
+    
+    def connect_to_port(self,port):
+        port=str(port)
+        if self.port!=None:
+            self.port.close()
+            self.port=None
+        if port:
+            self.port=serial.Serial(port,9600,bytesize=serial.EIGHTBITS,parity=serial.PARITY_NONE,stopbits=serial.STOPBITS_ONE)
+            time.sleep(2)
+            print >> sys.stderr, "Connected to", port
 
     def load(self,fig_file,max_x=2000,max_y=300):
         img=QImage(fig_file)
@@ -53,15 +66,19 @@ class Roope(QMainWindow):
                         img2.setPixel(x2,y2,qRgb(0,0,0))
         return img2
 
-    # def comm(self,s):
-    #     self.port.write(s)
-    #     self.port.flush()
-    #     #Now wait for "OK"
-    #     b=self.port.read()
-    #     assert b==";"
-
     def comm(self,s):
-        print repr(s)
+        print >> sys.stderr, "Sending ",repr(s)
+        print >> sys.stderr, "Written", self.port.write(s)
+        #Now wait for "OK"
+        while True:
+            b=self.port.read()
+            if b!=";":
+                sys.stderr.write(b)
+            else:
+                break
+        print >> sys.stderr
+        print >> sys.stderr, "Comm done"
+        sys.stderr.flush()
 
     def move_pixel(self,steps,angle,pen,backwards):
         command=struct.pack("<cHHBBc","D",steps,angle,pen,backwards,";") #c character, H unsigned 2B int, B unsigned byte  "<" little endian
@@ -76,14 +93,25 @@ class Roope(QMainWindow):
             backwards=0
         for y in ys:
             self.move_pixel(steps,0,qGray(self.image.pixel(x,y)),backwards)
-            
-        
+        self.side_step(direction)
+
+    def side_step(self,direction=DOWN,steps=10,angle=20):
+        angleRAD=mat.radians(90-angle)
+        traverse=int(steps/math.cos(angleRAD)) #How many steps to travel under angle?
+        back=int(steps*math.tan(angleRAD))
+        if direction==DOWN:
+            self.move_pixel(traverse,360-angle,0,True)
+            self.move_pixel(back,0,0,False)
+        elif direction==UP:
+            self.move_pixel(traverse,angle,0,False)
+            self.move_pixel(back,0,0,True)
 
 def main(app):
     roope=Roope()
     roope.show()
     roope.load("20140617_010845.jpg")
-    roope.follow_line()
+    roope.move_pixel(200,0,0,0)
+    #roope.follow_line()
     #roope.load("photo.jpg")
     return app.exec_()
 
