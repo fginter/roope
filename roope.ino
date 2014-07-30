@@ -38,8 +38,8 @@ Wheel diameter: 25mm --> perimeter: 78.5mm
 */
    
       
-StepMotor left(513,10,9,8,7,-1); //left motor, pins 9-12, indicator 13
-StepMotor right(513,6,5,4,3,-1);    //right motor, pins 4-7, indicator 8
+StepMotor left(513,7,8,9,10,-1); //left motor, pins 7-10, no indicator LED
+StepMotor right(513,3,4,5,6,-1);    
 
 // Move both tires simultaneously
 void move_both(long degs) {
@@ -124,14 +124,16 @@ void turn_left(long degs) {
 }
 
 Servo myservo;
+Servo penlift_servo; //115 degrees pen up, 130 degrees, pen down
 Connection c;
 void setup() {
-  /*
   myservo.attach(11);
+  penlift_servo.attach(12);
+  penlift_servo.write(130);
   myservo.write(70);
   left.setSpeed(8);
   right.setSpeed(8);
-  */
+  
   Serial.begin(9600);
   #ifndef debug
     Serial.println("**Arduino connected**");
