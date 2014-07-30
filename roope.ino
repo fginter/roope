@@ -137,15 +137,19 @@ void correct(double target, int dir, boolean forward) {
   while (true) {
     if (dir>0 && forward==true) { // turn right
       left.singleStep(true);
+      right.singleStep(false);
     }
     else if (dir<0 && forward==true){ // turn left
       right.singleStep(true);
+      left.singleStep(false);
     }
     else if (dir>0 && forward==false) {
       left.singleStep(false);
+      right.singleStep(true);
     }
     else {
       right.singleStep(false);
+      left.singleStep(true);
     }
     // ready yet?
     double new_a=MPU6050_get_angle(); // get new angle
