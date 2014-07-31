@@ -23,9 +23,13 @@ class Roope(QMainWindow):
         self.scene=QGraphicsScene()
         self.gui.g_view.setScene(self.scene)
         self.port=None
+<<<<<<< HEAD
         self.connect_to_port()
         self.pixel_v_steps=pixel_v_steps
         self.pixel_h_steps=pixel_h_steps
+=======
+        self.connect_to_port("/dev/ttyUSB0")
+>>>>>>> dev-corr
 
     # def refreshSerialPorts(self):
     #     self.gui.portList.clear()
