@@ -23,7 +23,7 @@ class Roope(QMainWindow):
         self.scene=QGraphicsScene()
         self.gui.g_view.setScene(self.scene)
         self.port=None
-        self.connect_to_port("/dev/ttyUSB1")
+        self.connect_to_port("/dev/ttyUSB0")
 
     # def refreshSerialPorts(self):
     #     self.gui.portList.clear()
@@ -112,11 +112,12 @@ def main(app):
     roope=Roope()
     roope.show()
     #roope.load("20140617_010845.jpg")
-    roope.move_pixel(100,0,1,0)
-    roope.side_step(UP,100)
-    roope.move_pixel(100,0,1,1)
-    for i in range(10):
-        roope.move_pixel(2000,0,i%2,0)
+    #roope.move_pixel(2000,0,1,0)
+    #roope.side_step(UP,100)
+    #roope.move_pixel(100,0,1,1)
+    for i in range(20):
+        roope.move_pixel(1000,90,100+i*10,0)
+        #roope.side_step(UP,100)
     #roope.follow_line()
     #roope.load("photo.jpg")
     #return app.exec_()

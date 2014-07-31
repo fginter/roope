@@ -37,10 +37,7 @@ StepMotor right(513,3,4,5,6,-1);
 Servo myservo;
 Servo penlift_servo; //115 degrees pen up, 130 degrees, pen down
 Connection c;
-int S_LOW = 60; // lowest possible servo angle
-int S_HIGH = 80; // highest possible servo angle
-int S_MIDDLE = S_LOW+(S_HIGH-S_LOW)/2;
-int WHITE = 0; // 
+
 
 void setup() {
   myservo.attach(11);
@@ -64,43 +61,66 @@ void setup() {
   //MPU6050_set_angle_reference(); //only needed once
   MPU6050_read_angle_reference_from_eeprom(); //Set the reference angle of the MPU from EEPROM
   
+  
 }
 
 /* MPU6050_get_angle() returns the angle relative to the position
    in which the reset button was pressed. The return value is double in the 0-360 degree range
    */
 
+int max_shade = 255-WHITE;
+int pen_range = S_HIGH-S_LOW;
+int middle = S_LOW+(S_HIGH-S_LOW)/2;
+double shade2angle = (double)pen_range/(double)max_shade;
 
-void follow_command(comm_t cmm) { 
+void follow_command(comm_t cmm) {
+  
   Serial.println(cmm.steps);
+  
+  // calculate servo angles
+  int low;
+  int high;
+  if (cmm.pen>WHITE) {
+    int shade = cmm.pen-WHITE;
+    // max_shade = 255-WHITE
+    low=middle-(int)((shade*shade2angle)/2);
+    high=middle+(int)((shade*shade2angle)/2);
+    Serial.print("low: ");
+    Serial.println(low);
+    Serial.print("high: ");
+    Serial.println(high);
+    
+  }
   
   unsigned int i = 0;
   boolean f = true;
   if (cmm.backwards==1) {
     f=false;
   }
-  if (cmm.pen==0) {
+  if (cmm.pen<=WHITE) {
     penlift_servo.write(115); // pen up
   }
   else {
-    myservo.write(S_MIDDLE); // make it to be middle
+    myservo.write(middle); // make it to be middle
+    Serial.println(middle);
     penlift_servo.write(130); // pen down
   }
   while (i<=cmm.steps) {
     //unsigned long start = micros(); // start time
     
-    if (cmm.pen>WHITE && i%2==0) {
-      myservo.write(S_LOW);
+    if (cmm.pen>WHITE && low!=high && i%2==0) {
+      myservo.write(low);
     }
-    else if (cmm.pen>WHITE) {
-      myservo.write(S_HIGH);
+    else if (cmm.pen>WHITE && low!=high) {
+      myservo.write(high);
     }
     double accel_a;
     accel_a=MPU6050_get_angle();
     double diff=calculate_diff((double)cmm.angle,accel_a);
-    if (abs(diff)>1.0) {
+    if (abs(diff)>3.0) {
       // force to correct angle
-      correct((double)cmm.angle,diff,true);
+      //Serial.println(diff);
+      correct((double)cmm.angle,diff,true,true);
     }
     left.singleStep(f);
     right.singleStep(f);
@@ -128,38 +148,52 @@ double calculate_diff(double target, double robot) {
   return diff;
 }
 
-void correct(double target, int dir, boolean forward) {
+
+void correct(double target, double dir, boolean forward, boolean both) {
   #ifndef debug
     Serial.println("**");
     Serial.println(dir);
     Serial.println("**");
   #endif
+  double diff=dir;
   while (true) {
     if (dir>0 && forward==true) { // turn right
       left.singleStep(true);
-      right.singleStep(false);
+      if (both && abs(diff)>TWO_W_C) right.singleStep(false);
     }
     else if (dir<0 && forward==true){ // turn left
       right.singleStep(true);
-      left.singleStep(false);
+      if (both && abs(diff)>TWO_W_C) left.singleStep(false);
     }
     else if (dir>0 && forward==false) {
       left.singleStep(false);
-      right.singleStep(true);
+      if (both && abs(diff)>TWO_W_C) right.singleStep(true);
     }
     else {
       right.singleStep(false);
-      left.singleStep(true);
+      if (both && abs(diff)>TWO_W_C) left.singleStep(true);
     }
     // ready yet?
+    //Serial.print("*");
     double new_a=MPU6050_get_angle(); // get new angle
-    double diff=calculate_diff(target,new_a);
-    if (abs(diff)<0.001) {
+    //Serial.print("read");
+    diff=calculate_diff(target,new_a);
+    
+    if (abs(diff)<0.5) {
+      Serial.print("ready <0.1, dir,diff: ");
+      Serial.print(dir);
+      Serial.print(" ");
+      Serial.println(diff);
       break;
     }
     else if ((dir<0 && diff>0) || (dir>0 && diff<0)) {
+      Serial.print("ready +/-, dir,diff: ");
+      Serial.print(dir);
+      Serial.println(diff);
       break;  
     }
+    //Serial.print("-- ");
+    //Serial.println(diff);
     
   }
     
@@ -176,11 +210,11 @@ void move_horizontal(double orig_angle, boolean forward) {
   }
   double robot = MPU6050_get_angle();
   double diff = calculate_diff(target,robot);
-  correct(target,diff,forward);
+  correct(target,diff,forward,true);
   
   robot = MPU6050_get_angle();
   diff = calculate_diff(orig_angle,robot);
-  correct(orig_angle,diff,forward);
+  correct(orig_angle,diff,forward,true);
 }
 
 
