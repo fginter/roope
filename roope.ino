@@ -44,8 +44,8 @@ void setup() {
   penlift_servo.attach(12);
   penlift_servo.write(115);
   myservo.write(70);
-  left.setSpeed(8);
-  right.setSpeed(8);
+  left.setSpeed(12);
+  right.setSpeed(12);
   
   Serial.begin(9600);
   #ifndef debug

@@ -23,13 +23,9 @@ class Roope(QMainWindow):
         self.scene=QGraphicsScene()
         self.gui.g_view.setScene(self.scene)
         self.port=None
-<<<<<<< HEAD
         self.connect_to_port()
         self.pixel_v_steps=pixel_v_steps
         self.pixel_h_steps=pixel_h_steps
-=======
-        self.connect_to_port("/dev/ttyUSB0")
->>>>>>> dev-corr
 
     # def refreshSerialPorts(self):
     #     self.gui.portList.clear()
@@ -56,7 +52,7 @@ class Roope(QMainWindow):
 
     def load(self,fig_file,height=300):
         img=QImage(fig_file)
-        img2=img.scaledToHeight(150,Qt.SmoothTransformation)
+        img2=img.scaledToHeight(300,Qt.SmoothTransformation)
         self.image=img2
         #img2=self.BW(img2)
         pix_map=QPixmap(img2)
@@ -90,22 +86,23 @@ class Roope(QMainWindow):
                 break
 
     def move_pixel(self,steps,angle,pen,backwards):
-        print "S=", steps, "A=", angle, "P=", pen, "B=", backwards
+        #print "S=", steps, "A=", angle, "P=", pen, "B=", backwards
         command=struct.pack("<cHHBBc","D",steps,angle,pen,backwards,";") #c character, H unsigned 2B int, B unsigned byte  "<" little endian
         self.comm(command)
 
     def draw_fig(self,from_x=0,from_y=0,direction=DOWN):
         xs=range(from_x,self.image.width(),self.pixel_h_steps//self.pixel_v_steps)
         for x in xs:
+            print "X=",x, "Image width:", self.image.width(), "Image height:", self.image.height()
             if x==from_x:
                 y=from_y
             else:
                 if direction==DOWN:
                     y=0
                 else:
-                    y=self.image.height()
-            self.follow_line(x,from_y,direction)
-            self.side_step(direction,steps=self.pixel_h_steps,angle=30)
+                    y=self.image.height()-1
+            self.follow_line(x,y,direction)
+            self.side_step(direction,steps=self.pixel_h_steps,angle=20)
             if direction==DOWN:
                 direction=UP
             else:
@@ -115,12 +112,14 @@ class Roope(QMainWindow):
         if direction==DOWN:
             ys=xrange(from_y,self.image.height())
             backwards=1
+            step=int(self.pixel_v_steps*0.97)
         elif direction==UP:
             ys=xrange(from_y,-1,-1)
             backwards=0
+            step=int(self.pixel_v_steps)
         for y in ys:
             color2=self.image.pixel(x,y)
-            self.move_pixel(self.pixel_v_steps,0,255-qGray(color2),backwards)
+            self.move_pixel(step,0,255-qGray(color2),backwards)
 
 
     def side_step(self,direction,steps,angle):
@@ -135,7 +134,7 @@ class Roope(QMainWindow):
             self.move_pixel(back,0,0,True)
 
 def main(app):
-    roope=Roope(pixel_v_steps=10,pixel_h_steps=50)
+    roope=Roope(pixel_v_steps=30,pixel_h_steps=300)
     #roope.load("20140617_010845.jpg")
     roope.load("spiral.png")
     roope.show()
