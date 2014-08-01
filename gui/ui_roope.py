@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_roope.ui'
 #
-# Created: Wed Jul 30 11:39:44 2014
+# Created: Fri Aug  1 12:25:12 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(561, 625)
+        MainWindow.resize(689, 625)
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.verticalLayout = QtGui.QVBoxLayout(self.centralwidget)
@@ -38,20 +38,21 @@ class Ui_MainWindow(object):
         self.frame.setFrameShape(QtGui.QFrame.StyledPanel)
         self.frame.setFrameShadow(QtGui.QFrame.Raised)
         self.frame.setObjectName(_fromUtf8("frame"))
-        self.horizontalLayout = QtGui.QHBoxLayout(self.frame)
-        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
-        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem)
-        self.portList = QtGui.QComboBox(self.frame)
-        self.portList.setObjectName(_fromUtf8("portList"))
-        self.horizontalLayout.addWidget(self.portList)
-        self.portlistRefresh = QtGui.QPushButton(self.frame)
-        self.portlistRefresh.setObjectName(_fromUtf8("portlistRefresh"))
-        self.horizontalLayout.addWidget(self.portlistRefresh)
+        self.gridLayout = QtGui.QGridLayout(self.frame)
+        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
+        self.verticalCorrection = QtGui.QDoubleSpinBox(self.frame)
+        self.verticalCorrection.setMaximum(200.0)
+        self.verticalCorrection.setSingleStep(0.1)
+        self.verticalCorrection.setProperty("value", 100.0)
+        self.verticalCorrection.setObjectName(_fromUtf8("verticalCorrection"))
+        self.gridLayout.addWidget(self.verticalCorrection, 0, 1, 1, 1)
+        self.label = QtGui.QLabel(self.frame)
+        self.label.setObjectName(_fromUtf8("label"))
+        self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
         self.verticalLayout.addWidget(self.frame)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 561, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 689, 27))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(MainWindow)
@@ -63,5 +64,5 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
-        self.portlistRefresh.setText(_translate("MainWindow", "Refresh", None))
+        self.label.setText(_translate("MainWindow", "Vertical correction [%]", None))
 

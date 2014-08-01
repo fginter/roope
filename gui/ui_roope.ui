@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>561</width>
+    <width>689</width>
     <height>625</height>
    </rect>
   </property>
@@ -26,27 +26,24 @@
       <property name="frameShadow">
        <enum>QFrame::Raised</enum>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="1">
+        <widget class="QDoubleSpinBox" name="verticalCorrection">
+         <property name="maximum">
+          <double>200.000000000000000</double>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
          </property>
-        </spacer>
+         <property name="value">
+          <double>100.000000000000000</double>
+         </property>
+        </widget>
        </item>
-       <item>
-        <widget class="QComboBox" name="portList"/>
-       </item>
-       <item>
-        <widget class="QPushButton" name="portlistRefresh">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label">
          <property name="text">
-          <string>Refresh</string>
+          <string>Vertical correction [%]</string>
          </property>
         </widget>
        </item>
@@ -60,8 +57,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>561</width>
-     <height>21</height>
+     <width>689</width>
+     <height>27</height>
     </rect>
    </property>
   </widget>
