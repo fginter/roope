@@ -21,9 +21,10 @@ class DrawThread(QThread):
         self.roope=roope
 
     def run(self):
-        #self.roope.calibrate_sidestep(40)
-#        self.roope.calibrate_vertical(4000)
+        #self.roope.calibrate_sidestep(120)
+        #self.roope.calibrate_vertical(120,30)
         self.roope.draw_fig()
+        #self.roope.two_lines(40)
         self.terminate()
 
 
@@ -40,7 +41,7 @@ class Roope(QMainWindow):
         self.pixel_v_steps=pixel_v_steps
         self.pixel_h_steps=pixel_h_steps
         self.gui.verticalCorrection.setValue(90.5)
-        self.gui.sideStepCorrection.setValue(51)
+        self.gui.sideStepCorrection.setValue(44.9)
         self.draw_t=DrawThread(self)
         
 
@@ -114,12 +115,27 @@ class Roope(QMainWindow):
             print counter
             self.side_step(UP,pixel_h_steps,20,101)
 
-    def calibrate_vertical(self,pixel_v_steps):
+    def two_lines(self,pixel_v_steps):
+        while True:
+            self.move_pixel(int(pixel_v_steps*self.gui.verticalCorrection.value()/100.0),0,250,True)
+            for _ in range(50):
+                self.move_pixel(int(pixel_v_steps*self.gui.verticalCorrection.value()/100.0),0,0,True)
+            self.move_pixel(int(pixel_v_steps*self.gui.verticalCorrection.value()/100.0),0,250,True)
+            self.side_step(UP,pixel_v_steps,20)
+            self.move_pixel(pixel_v_steps,0,250,False)
+            for _ in range(50):
+                self.move_pixel(pixel_v_steps,0,0,False)
+            self.move_pixel(pixel_v_steps,0,250,False)
+            self.side_step(UP,pixel_v_steps,20)
+        
+    def calibrate_vertical(self,pixel_v_steps,reps):
         counter=1
         while True:
             print counter
-            self.move_pixel(int(pixel_v_steps*self.gui.verticalCorrection.value()/100.0),0,101,True)
-            self.move_pixel(pixel_v_steps,0,101,False)
+            for _ in range(reps):
+                self.move_pixel(int(pixel_v_steps*self.gui.verticalCorrection.value()/100.0),0,250,True)
+            for _ in range(reps):            
+                self.move_pixel(pixel_v_steps,0,250,False)
 
 
     def draw_fig(self,from_x=0,from_y=0,direction=DOWN):
@@ -170,7 +186,7 @@ class Roope(QMainWindow):
 
 def main(app):
     global draw_t
-    roope=Roope(pixel_v_steps=80,pixel_h_steps=80)
+    roope=Roope(pixel_v_steps=120,pixel_h_steps=120)
     #roope.load("20140617_010845.jpg")
     roope.load("spiral.png")
     roope.show()
