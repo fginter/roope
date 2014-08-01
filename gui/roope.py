@@ -21,6 +21,8 @@ class DrawThread(QThread):
         self.roope=roope
 
     def run(self):
+        #self.roope.calibrate_sidestep(40)
+        self.roope.calibrate_vertical(4000)
         self.roope.draw_fig()
         for x in range(50):
 #            self.roope.move_pixel(6000,0,101,0)
@@ -45,6 +47,7 @@ class Roope(QMainWindow):
         self.pixel_v_steps=pixel_v_steps
         self.pixel_h_steps=pixel_h_steps
         self.gui.verticalCorrection.setValue(90.5)
+        self.gui.sideStepCorrection.setValue(51)
         self.draw_t=DrawThread(self)
         
 
@@ -111,10 +114,24 @@ class Roope(QMainWindow):
         command=struct.pack("<cHHBBc","D",steps,angle,pen,backwards,";") #c character, H unsigned 2B int, B unsigned byte  "<" little endian
         self.comm(command)
 
+    def calibrate_sidestep(self,pixel_h_steps):
+        counter=1
+        while True:
+            print counter
+            self.side_step(UP,pixel_h_steps,20,101)
+
+    def calibrate_vertical(self,pixel_v_steps):
+        counter=1
+        while True:
+            print counter
+            self.move_pixel(int(pixel_v_steps*self.gui.verticalCorrection.value()/100.0),0,101,True)
+            self.move_pixel(pixel_v_steps,0,101,False)
+
+
     def draw_fig(self,from_x=0,from_y=0,direction=DOWN):
         xs=range(from_x,self.image.width(),self.pixel_h_steps//self.pixel_v_steps)
         for x in xs:
-            print "X=",x, "Image width:", self.image.width(), "Image height:", self.image.height()
+#            print "X=",x, "Image width:", self.image.width(), "Image height:", self.image.height()
             if x==from_x:
                 y=from_y
             else:
@@ -150,11 +167,12 @@ class Roope(QMainWindow):
         traverse=int(steps/math.cos(angleRAD)) #How many steps to travel under angle?
         back=int(steps*math.tan(angleRAD))
         if direction==DOWN:
+            assert False
             self.move_pixel(traverse,360-angle,0,True)
             self.move_pixel(back,0,0,False)
         elif direction==UP:
             self.move_pixel(traverse,angle,pen,False)
-            self.move_pixel(back*55/100.0,0,pen,True)
+            self.move_pixel(int(back*self.gui.sideStepCorrection.value()/100.0),0,pen,True)
 
 def main(app):
     global draw_t

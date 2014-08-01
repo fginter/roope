@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_roope.ui'
 #
-# Created: Fri Aug  1 12:25:12 2014
+# Created: Fri Aug  1 15:38:57 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -49,6 +49,15 @@ class Ui_MainWindow(object):
         self.label = QtGui.QLabel(self.frame)
         self.label.setObjectName(_fromUtf8("label"))
         self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
+        self.sideStepCorrection = QtGui.QDoubleSpinBox(self.frame)
+        self.sideStepCorrection.setMaximum(200.0)
+        self.sideStepCorrection.setSingleStep(0.1)
+        self.sideStepCorrection.setProperty("value", 100.0)
+        self.sideStepCorrection.setObjectName(_fromUtf8("sideStepCorrection"))
+        self.gridLayout.addWidget(self.sideStepCorrection, 1, 1, 1, 1)
+        self.label_2 = QtGui.QLabel(self.frame)
+        self.label_2.setObjectName(_fromUtf8("label_2"))
+        self.gridLayout.addWidget(self.label_2, 1, 0, 1, 1)
         self.verticalLayout.addWidget(self.frame)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
@@ -65,4 +74,5 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
         self.label.setText(_translate("MainWindow", "Vertical correction [%]", None))
+        self.label_2.setText(_translate("MainWindow", "Sidestep correction [%]", None))
 

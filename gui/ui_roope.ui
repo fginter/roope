@@ -47,6 +47,26 @@
          </property>
         </widget>
        </item>
+       <item row="1" column="1">
+        <widget class="QDoubleSpinBox" name="sideStepCorrection">
+         <property name="maximum">
+          <double>200.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+         <property name="value">
+          <double>100.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Sidestep correction [%]</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </item>
