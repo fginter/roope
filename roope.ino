@@ -108,11 +108,13 @@ void follow_command(comm_t cmm) {
   while (i<=cmm.steps) {
     //unsigned long start = micros(); // start time
     
-    if (cmm.pen>WHITE && low!=high && i%2==0) {
-      myservo.write(low);
-    }
-    else if (cmm.pen>WHITE && low!=high) {
-      myservo.write(high);
+    if (cmm.pen>WHITE && i%2==0) {
+      if (low!=high && i%4==0) {
+        myservo.write(low);
+      }
+      else if (low!=high) {
+        myservo.write(high);
+      }
     }
     double accel_a;
     accel_a=MPU6050_get_angle();

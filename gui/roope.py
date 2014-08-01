@@ -22,6 +22,13 @@ class DrawThread(QThread):
 
     def run(self):
         self.roope.draw_fig()
+        for x in range(50):
+#            self.roope.move_pixel(6000,0,101,0)
+            self.roope.side_step(UP,40,20)
+#            self.roope.move_pixel(int(6000*self.roope.gui.verticalCorrection.value()/100.0),0,101,1)
+#            self.roope.side_step(UP,400,20)
+
+
         self.terminate()
 
 
@@ -37,7 +44,7 @@ class Roope(QMainWindow):
         self.connect_to_port()
         self.pixel_v_steps=pixel_v_steps
         self.pixel_h_steps=pixel_h_steps
-        self.vertical_correction=100.0
+        self.gui.verticalCorrection.setValue(90.5)
         self.draw_t=DrawThread(self)
         
 
@@ -64,9 +71,9 @@ class Roope(QMainWindow):
         else:
             print >> sys.stderr, "Couldn't find any port to connect to"
 
-    def load(self,fig_file,height=300):
+    def load(self,fig_file,height=50):
         img=QImage(fig_file)
-        img2=img.scaledToHeight(300,Qt.SmoothTransformation)
+        img2=img.scaledToHeight(height,Qt.SmoothTransformation)
         self.image=img2
         #img2=self.BW(img2)
         pix_map=QPixmap(img2)
@@ -135,9 +142,10 @@ class Roope(QMainWindow):
             elif direction==UP:
                 step=int(self.pixel_v_steps)
             color2=self.image.pixel(x,y)
+            print "x,y=",x,y
             self.move_pixel(step,0,255-qGray(color2),backwards)
 
-    def side_step(self,direction,steps,angle):
+    def side_step(self,direction,steps,angle,pen=0):
         angleRAD=math.radians(90-angle)
         traverse=int(steps/math.cos(angleRAD)) #How many steps to travel under angle?
         back=int(steps*math.tan(angleRAD))
@@ -145,12 +153,12 @@ class Roope(QMainWindow):
             self.move_pixel(traverse,360-angle,0,True)
             self.move_pixel(back,0,0,False)
         elif direction==UP:
-            self.move_pixel(traverse,angle,0,False)
-            self.move_pixel(back*self.gui.verticalCorrection.value()/100.0,0,0,True)
+            self.move_pixel(traverse,angle,pen,False)
+            self.move_pixel(back*55/100.0,0,pen,True)
 
 def main(app):
     global draw_t
-    roope=Roope(pixel_v_steps=400,pixel_h_steps=400)
+    roope=Roope(pixel_v_steps=80,pixel_h_steps=80)
     #roope.load("20140617_010845.jpg")
     roope.load("spiral.png")
     roope.show()
@@ -159,8 +167,9 @@ def main(app):
     #roope.move_pixel(100,0,1,0)
     #roope.side_step(UP,100)
     #roope.move_pixel(100,0,1,1)
-    #for i in range(10):
-    #    roope.move_pixel(2000,0,i%2,0)
+            #roope.move_pixel(20,0,101,0)
+        #roope.move_pixel(200,0,255,0)
+        #roope.move_pixel(2000,0,180,0)
     #roope.follow_line()
     #roope.load("photo.jpg")
     return app.exec_()
