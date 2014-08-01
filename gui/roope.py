@@ -22,15 +22,8 @@ class DrawThread(QThread):
 
     def run(self):
         #self.roope.calibrate_sidestep(40)
-        self.roope.calibrate_vertical(4000)
+#        self.roope.calibrate_vertical(4000)
         self.roope.draw_fig()
-        for x in range(50):
-#            self.roope.move_pixel(6000,0,101,0)
-            self.roope.side_step(UP,40,20)
-#            self.roope.move_pixel(int(6000*self.roope.gui.verticalCorrection.value()/100.0),0,101,1)
-#            self.roope.side_step(UP,400,20)
-
-
         self.terminate()
 
 
@@ -81,6 +74,7 @@ class Roope(QMainWindow):
         #img2=self.BW(img2)
         pix_map=QPixmap(img2)
         self.scene.addPixmap(pix_map)
+        self.gui.g_view.scale(10,10)
         #self.gui.g_view.fitInView(self.scene.itemsBoundingRect(),Qt.KeepAspectRatio)
         
     def BW(self,img):
