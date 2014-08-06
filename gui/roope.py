@@ -72,11 +72,26 @@ class Roope(QMainWindow):
         img=QImage(fig_file)
         img2=img.scaledToHeight(height,Qt.SmoothTransformation)
         self.image=img2
-        #img2=self.BW(img2)
-        pix_map=QPixmap(img2)
+        img_vis=self.BW2(img2)
+        pix_map=QPixmap(img_vis)
         self.scene.addPixmap(pix_map)
-        self.gui.g_view.scale(10,10)
-        #self.gui.g_view.fitInView(self.scene.itemsBoundingRect(),Qt.KeepAspectRatio)
+        scale= self.scene.itemsBoundingRect().height()/float(self.gui.g_view.height())
+        self.gui.g_view.scale(scale,scale)
+        #elf.gui.g_view.fitInView(self.scene.itemsBoundingRect(),Qt.KeepAspectRatio)
+
+    def BW2(self,img,white_level=100):
+        img2=img.copy()
+        for x in xrange(img2.width()):
+            for y in xrange(img2.height()):
+                g=qGray(img2.pixel(x,y))
+                g=255-g
+                if g<=white_level:
+                    g=0
+                else:
+                    g=(g//51)*51
+                img2.setPixel(x,y,qRgb(255-g,255-g,255-g))
+        return img2
+                          
         
     def BW(self,img):
         img2=img.scaled(img.width()*5,img.height()*5)
@@ -187,8 +202,8 @@ class Roope(QMainWindow):
 def main(app):
     global draw_t
     roope=Roope(pixel_v_steps=120,pixel_h_steps=120)
-    #roope.load("20140617_010845.jpg")
-    roope.load("spiral.png")
+    roope.load("20140617_010845.jpg",height=150)
+    #roope.load("spiral.png")
     roope.show()
     #roope.draw_fig()
     roope.draw_t.start()
