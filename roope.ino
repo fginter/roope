@@ -72,6 +72,7 @@ void setup() {
 
 
 void go_home() {
+  penlift_servo.write(115); // pen up
   while (digitalRead(2)!=0) {
     
     double accel_a;
