@@ -21,8 +21,9 @@ class DrawThread(QThread):
         self.roope=roope
 
     def run(self):
-        #self.roope.calibrate_sidestep(120)
+        #self.roope.calibrate_sidestep(400)
         #self.roope.calibrate_vertical(120,30)
+        #self.roope.calibrate_pen()
         self.roope.draw_fig()
         #self.roope.two_lines(40)
         self.terminate()
@@ -40,8 +41,8 @@ class Roope(QMainWindow):
         self.connect_to_port()
         self.pixel_v_steps=pixel_v_steps
         self.pixel_h_steps=pixel_h_steps
-        self.gui.verticalCorrection.setValue(90.5)
-        self.gui.sideStepCorrection.setValue(44.9)
+        self.gui.verticalCorrection.setValue(93.0)
+        self.gui.sideStepCorrection.setValue(90.0)
         self.draw_t=DrawThread(self)
         
 
@@ -130,6 +131,11 @@ class Roope(QMainWindow):
             print counter
             self.side_step(UP,pixel_h_steps,20,101)
 
+    def calibrate_pen(self):
+        while True:
+            self.move_pixel(200,0,0,False)
+            self.move_pixel(200,0,255,True)
+
     def two_lines(self,pixel_v_steps):
         while True:
             self.move_pixel(int(pixel_v_steps*self.gui.verticalCorrection.value()/100.0),0,250,True)
@@ -201,7 +207,7 @@ class Roope(QMainWindow):
 
 def main(app):
     global draw_t
-    roope=Roope(pixel_v_steps=120,pixel_h_steps=120)
+    roope=Roope(pixel_v_steps=240,pixel_h_steps=240)
     roope.load("20140617_010845.jpg",height=150)
     #roope.load("spiral.png")
     roope.show()

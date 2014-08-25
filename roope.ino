@@ -108,8 +108,8 @@ void follow_command(comm_t cmm) {
   while (i<=cmm.steps) {
     //unsigned long start = micros(); // start time
     
-    if (cmm.pen>WHITE && i%2==0) {
-      if (low!=high && i%4==0) {
+    if (cmm.pen>WHITE && i%10==0) {
+      if (low!=high && i%20==0) {
         myservo.write(low);
       }
       else if (low!=high) {
@@ -119,7 +119,7 @@ void follow_command(comm_t cmm) {
     double accel_a;
     accel_a=MPU6050_get_angle();
     double diff=calculate_diff((double)cmm.angle,accel_a);
-    if (abs(diff)>3.0) {
+    if (abs(diff)>CORR_LIMIT) {
       // force to correct angle
       //Serial.println(diff);
       correct((double)cmm.angle,diff,true,true);
