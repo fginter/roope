@@ -7,6 +7,7 @@ import serial.tools.list_ports
 import serial
 import math
 import time
+import datetime
 
 DOWN=180
 UP=0
@@ -24,6 +25,7 @@ class DrawThread(QThread):
         #self.roope.calibrate_sidestep(400)
         #self.roope.calibrate_vertical(120,30)
         #self.roope.calibrate_pen()
+        self.roope.drawing_started=datetime.datetime.now()
         self.roope.draw_fig()
         #self.roope.two_lines(40)
         self.terminate()
@@ -44,7 +46,10 @@ class Roope(QMainWindow):
         self.gui.verticalCorrection.setValue(93.0)
         self.gui.sideStepCorrection.setValue(90.0)
         self.draw_t=DrawThread(self)
-        
+        self.gui.position_label.setText("")
+        self.progress=0
+        self.total_pixels=0 #draw_fig will set this
+        self.drawing_started=None #The draw process will fill this
 
     # def refreshSerialPorts(self):
     #     self.gui.portList.clear()
@@ -75,10 +80,10 @@ class Roope(QMainWindow):
         self.image=img2
         img_vis=self.BW2(img2)
         pix_map=QPixmap(img_vis)
-        self.scene.addPixmap(pix_map)
-        scale= self.scene.itemsBoundingRect().height()/float(self.gui.g_view.height())
+        pix_map_item=self.scene.addPixmap(pix_map)
+        scale= min(self.scene.itemsBoundingRect().height()/float(self.gui.g_view.height()),self.scene.itemsBoundingRect().width()/float(self.gui.g_view.width()))
         self.gui.g_view.scale(scale,scale)
-        #elf.gui.g_view.fitInView(self.scene.itemsBoundingRect(),Qt.KeepAspectRatio)
+        #self.gui.g_view.fitInView(pix_map_item,Qt.KeepAspectRatio)
 
     def BW2(self,img,white_level=100):
         img2=img.copy()
@@ -110,6 +115,9 @@ class Roope(QMainWindow):
         return img2
 
     def comm(self,s):
+        if not self.port:
+            time.sleep(0.005)
+            return
         self.port.write(s)
         #Now wait for "OK"
         while True:
@@ -167,6 +175,7 @@ class Roope(QMainWindow):
 
 
     def draw_fig(self,from_x=0,from_y=0,direction=DOWN):
+        self.total_pixels=(self.image.width()-from_x)*self.image.height()-from_y
         self.gohome() #start by finding home
         xs=range(from_x,self.image.width(),self.pixel_h_steps//self.pixel_v_steps)
         for x in xs:
@@ -202,6 +211,11 @@ class Roope(QMainWindow):
             color2=self.image.pixel(x,y)
             print "x,y=",x,y
             self.move_pixel(step,0,255-qGray(color2),backwards)
+            self.progress+=1
+            time_progressed=(datetime.datetime.now()-self.drawing_started).total_seconds()
+            portion_done=float(self.progress)/self.total_pixels
+            eta=self.drawing_started+datetime.timedelta(seconds=float(time_progressed)/portion_done)
+            self.gui.position_label.setText("X=%03d Y=%03d Done: %.2f%%  ETA: %02d:%02d:%02d"%(x,y,100.0*portion_done,eta.hour,eta.minute,eta.second))
 
     def side_step(self,direction,steps,angle,pen=0):
         angleRAD=math.radians(90-abs(angle))

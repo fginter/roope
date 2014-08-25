@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_roope.ui'
 #
-# Created: Fri Aug  1 15:38:57 2014
+# Created: Tue Aug 26 00:13:19 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -31,6 +31,9 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.verticalLayout = QtGui.QVBoxLayout(self.centralwidget)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        self.position_label = QtGui.QLabel(self.centralwidget)
+        self.position_label.setObjectName(_fromUtf8("position_label"))
+        self.verticalLayout.addWidget(self.position_label)
         self.g_view = QtGui.QGraphicsView(self.centralwidget)
         self.g_view.setObjectName(_fromUtf8("g_view"))
         self.verticalLayout.addWidget(self.g_view)
@@ -73,6 +76,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
+        self.position_label.setText(_translate("MainWindow", "TextLabel", None))
         self.label.setText(_translate("MainWindow", "Vertical correction [%]", None))
         self.label_2.setText(_translate("MainWindow", "Sidestep correction [%]", None))
 
