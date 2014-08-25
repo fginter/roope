@@ -21,8 +21,9 @@ class DrawThread(QThread):
         self.roope=roope
 
     def run(self):
-        #self.roope.calibrate_sidestep(120)
+        #self.roope.calibrate_sidestep(400)
         #self.roope.calibrate_vertical(120,30)
+        #self.roope.calibrate_pen()
         self.roope.draw_fig()
         #self.roope.two_lines(40)
         self.terminate()
@@ -40,8 +41,8 @@ class Roope(QMainWindow):
         self.connect_to_port()
         self.pixel_v_steps=pixel_v_steps
         self.pixel_h_steps=pixel_h_steps
-        self.gui.verticalCorrection.setValue(90.5)
-        self.gui.sideStepCorrection.setValue(44.9)
+        self.gui.verticalCorrection.setValue(93.0)
+        self.gui.sideStepCorrection.setValue(90.0)
         self.draw_t=DrawThread(self)
         
 
@@ -130,6 +131,11 @@ class Roope(QMainWindow):
             print counter
             self.side_step(UP,pixel_h_steps,20,101)
 
+    def calibrate_pen(self):
+        while True:
+            self.move_pixel(200,0,0,False)
+            self.move_pixel(200,0,255,True)
+
     def two_lines(self,pixel_v_steps):
         while True:
             self.move_pixel(int(pixel_v_steps*self.gui.verticalCorrection.value()/100.0),0,250,True)
@@ -152,8 +158,16 @@ class Roope(QMainWindow):
             for _ in range(reps):            
                 self.move_pixel(pixel_v_steps,0,250,False)
 
+    def gohome(self):
+        print "GO HOME"
+        command=struct.pack("<cHHBBc","H",0,0,0,False,";") #c character, H unsigned 2B int, B unsigned byte  "<" little endian
+        self.comm(command)
+        for _ in range(10): #how many pixels to back?
+            self.move_pixel(self.pixel_v_steps,0,0,True) #backs to position
+
 
     def draw_fig(self,from_x=0,from_y=0,direction=DOWN):
+        self.gohome() #start by finding home
         xs=range(from_x,self.image.width(),self.pixel_h_steps//self.pixel_v_steps)
         for x in xs:
 #            print "X=",x, "Image width:", self.image.width(), "Image height:", self.image.height()
@@ -165,10 +179,12 @@ class Roope(QMainWindow):
                 else:
                     y=self.image.height()-1
             self.follow_line(x,y,direction)
-            self.side_step(UP,steps=self.pixel_h_steps,angle=20)
             if direction==DOWN:
+                self.side_step(UP,steps=self.pixel_h_steps,angle=20)
                 direction=UP
             else:
+                self.side_step(DOWN,steps=self.pixel_h_steps,angle=20)
+                self.gohome()
                 direction=DOWN
 
     def follow_line(self,x=0,from_y=0,direction=DOWN):
@@ -188,20 +204,19 @@ class Roope(QMainWindow):
             self.move_pixel(step,0,255-qGray(color2),backwards)
 
     def side_step(self,direction,steps,angle,pen=0):
-        angleRAD=math.radians(90-angle)
+        angleRAD=math.radians(90-abs(angle))
         traverse=int(steps/math.cos(angleRAD)) #How many steps to travel under angle?
         back=int(steps*math.tan(angleRAD))
         if direction==DOWN:
-            assert False
-            self.move_pixel(traverse,360-angle,0,True)
-            self.move_pixel(back,0,0,False)
+            self.move_pixel(traverse,360-angle,pen,True)
+            self.move_pixel(int(back*self.gui.sideStepCorrection.value()/100.0),0,pen,False) #maybe less of a correction needed here?
         elif direction==UP:
             self.move_pixel(traverse,angle,pen,False)
             self.move_pixel(int(back*self.gui.sideStepCorrection.value()/100.0),0,pen,True)
 
 def main(app):
     global draw_t
-    roope=Roope(pixel_v_steps=120,pixel_h_steps=120)
+    roope=Roope(pixel_v_steps=240,pixel_h_steps=240)
     roope.load("20140617_010845.jpg",height=150)
     #roope.load("spiral.png")
     roope.show()
