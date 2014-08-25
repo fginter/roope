@@ -52,6 +52,8 @@ void setup() {
     Serial.println("**Arduino connected**");
   #endif
   
+  pinMode(2,INPUT_PULLUP); // set the internal pull-up resistor to read HIGH on pin 2 (front button)
+  
   int err;
   err=MPU6050_init();
   #if !defined(MPU6050_silent) && !defined(debug)
@@ -68,12 +70,37 @@ void setup() {
    in which the reset button was pressed. The return value is double in the 0-360 degree range
    */
 
+
+void go_home() {
+  while (digitalRead(2)!=0) {
+    
+    double accel_a;
+    accel_a=MPU6050_get_angle();
+    double diff=calculate_diff(0.0,accel_a);
+    if (abs(diff)>CORR_LIMIT) {
+      correct(0.0,diff,true,true);
+    }
+    
+    left.singleStep(true);
+    right.singleStep(true);
+    delayMicroseconds(left.stepDelay);
+    
+  }
+  
+}
+
+
 int max_shade = 255-WHITE;
 int pen_range = S_HIGH-S_LOW;
 int middle = S_LOW+(S_HIGH-S_LOW)/2;
 double shade2angle = (double)pen_range/(double)max_shade;
 
-void follow_command(comm_t cmm) {
+int follow_command(comm_t cmm) {
+  
+  if (cmm.command=='H') {
+    go_home();
+    return 0;
+  }
   
   Serial.println(cmm.steps);
   
@@ -108,6 +135,10 @@ void follow_command(comm_t cmm) {
   while (i<=cmm.steps) {
     //unsigned long start = micros(); // start time
     
+    if (digitalRead(2)==0) { // front button is pressed
+      return 1; // terminate this command
+    }
+    
     if (cmm.pen>WHITE && i%2==0) {
       if (low!=high && i%4==0) {
         myservo.write(low);
@@ -134,6 +165,7 @@ void follow_command(comm_t cmm) {
     i++;
   }
   Serial.println(";");
+  return 0;
 }
 
 double calculate_diff(double target, double robot) {
@@ -159,6 +191,9 @@ void correct(double target, double dir, boolean forward, boolean both) {
   #endif
   double diff=dir;
   while (true) {
+    if (digitalRead(2)==0) {
+      break;
+    }
     if (dir>0 && forward==true) { // turn right
       left.singleStep(true);
       if (both && abs(diff)>TWO_W_C) right.singleStep(false);
@@ -236,7 +271,7 @@ void loop() {
   int err=c.fetch_command((char*)(void*)&msg);
   //Serial.println(err);
   if (err==0) {
-    follow_command(msg);
+    int e=follow_command(msg);
   }
     
   
