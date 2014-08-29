@@ -22,8 +22,8 @@ class DrawThread(QThread):
         self.roope=roope
 
     def run(self):
-        #self.roope.calibrate_sidestep(400)
-        #self.roope.calibrate_vertical(120,30)
+        #self.roope.calibrate_sidestep(120)
+        #self.roope.calibrate_vertical(120*150,1)
         #self.roope.calibrate_pen()
         self.roope.drawing_started=datetime.datetime.now()
         self.roope.draw_fig()
@@ -50,6 +50,7 @@ class Roope(QMainWindow):
         self.progress=0
         self.total_pixels=0 #draw_fig will set this
         self.drawing_started=None #The draw process will fill this
+        self.v_to_h_ratio=1.28 #Multiplier for the vertical step to get a square
 
     # def refreshSerialPorts(self):
     #     self.gui.portList.clear()
@@ -123,7 +124,7 @@ class Roope(QMainWindow):
         while True:
             b=self.port.read()
             if b!=";":
-                #sys.stderr.write(b)
+                sys.stderr.write(b)
                 sys.stderr.flush()
             else:
                 break
@@ -135,7 +136,7 @@ class Roope(QMainWindow):
 
     def calibrate_sidestep(self,pixel_h_steps):
         counter=1
-        while True:
+        for _ in range(150):
             print counter
             self.side_step(UP,pixel_h_steps,20,101)
 
@@ -162,9 +163,10 @@ class Roope(QMainWindow):
         while True:
             print counter
             for _ in range(reps):
-                self.move_pixel(int(pixel_v_steps*self.gui.verticalCorrection.value()/100.0),0,250,True)
+                self.move_pixel(int(pixel_v_steps*self.gui.verticalCorrection.value()/100.0*self.v_to_h_ratio),0,0,True)
+            time.sleep(10)
             for _ in range(reps):            
-                self.move_pixel(pixel_v_steps,0,250,False)
+                self.move_pixel(pixel_v_steps*self.v_to_h_ratio,0,0,False)
 
     def gohome(self):
         print "GO HOME"
@@ -208,6 +210,7 @@ class Roope(QMainWindow):
                 step=int(self.pixel_v_steps*self.gui.verticalCorrection.value()/100.0)
             elif direction==UP:
                 step=int(self.pixel_v_steps)
+            step=int(step*self.v_to_h_ratio)
             color2=self.image.pixel(x,y)
             print "x,y=",x,y
             self.move_pixel(step,0,255-qGray(color2),backwards)
@@ -231,8 +234,8 @@ class Roope(QMainWindow):
 def main(app):
     global draw_t
     roope=Roope(pixel_v_steps=240,pixel_h_steps=240)
-    roope.load("20140617_010845.jpg",height=150)
-    #roope.load("spiral.png")
+    #roope.load("20140617_010845.jpg",height=30)
+    roope.load("spiral.png",height=50)
     roope.show()
     #roope.draw_fig()
     roope.draw_t.start()

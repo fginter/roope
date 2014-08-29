@@ -52,8 +52,8 @@ void setup() {
     Serial.println("**Arduino connected**");
   #endif
   
-  pinMode(2,INPUT_PULLUP); // set the internal pull-up resistor to read HIGH on pin 2 (front button)
-  
+  pinMode(2,INPUT); // set the internal pull-up resistor to read HIGH on pin 2 (front button)
+  digitalWrite(2,HIGH);
   int err;
   err=MPU6050_init();
   #if !defined(MPU6050_silent) && !defined(debug)
@@ -87,6 +87,7 @@ void go_home() {
     delayMicroseconds(left.stepDelay);
     
   }
+  Serial.println(';');
   
 }
 
@@ -136,7 +137,8 @@ int follow_command(comm_t cmm) {
   while (i<=cmm.steps) {
     //unsigned long start = micros(); // start time
     
-    if (digitalRead(2)==0) { // front button is pressed
+    if (digitalRead(2)==0 && f==true) { // front button is pressed, and we are going up
+      Serial.println("TERM ;");
       return 1; // terminate this command
     }
     
